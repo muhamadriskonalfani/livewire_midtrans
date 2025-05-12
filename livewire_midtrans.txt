@@ -1,0 +1,48 @@
+Livewire Midtrans
+
+# Component
+- Home
+- Login
+- Register
+- ManageProduct
+- ListProduct
+- MyOrder
+
+# Model
+- User
+    - name
+    - email
+    - password
+- Product
+    - name
+    - price
+    - stock
+    - image
+- Cart
+    - user_id
+- CartItem
+    - cart_id
+    - product_id
+    - quantity
+- Order
+    - user_id
+    - total_price
+    - status
+- OrderItem
+    - order_id
+    - product_id
+    - quantity
+    - price
+- Payment
+    - user_id
+    - order_id
+    - bill
+    - payment_status
+    - paid_at
+
+# Tambahan
+- 
+
+# Midtrans
+- Install Midtrans, ""
+- 
