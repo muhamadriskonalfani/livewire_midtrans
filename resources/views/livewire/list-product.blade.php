@@ -111,6 +111,11 @@
                 }
             }
         });
+
+        // Snap Redirect Midtrans
+        Livewire.on('redirect-to-midtrans', url => {
+            window.location.href = url;
+        });
     });
 </script>
 @endpush

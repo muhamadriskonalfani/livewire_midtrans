@@ -15,9 +15,13 @@ return new class extends Migration
             $table->id();
             $table->integer('user_id');
             $table->integer('order_id');
+            $table->string('midtrans_order_id')->nullable();
+            $table->string('transaction_id')->nullable();
+            $table->string('payment_type')->nullable();
+            $table->string('fraud_status')->nullable();
             $table->string('bill');
-            $table->enum('payment_status', ['pending', 'success', 'failed'])->default('pending');
-            $table->dateTime('paid_at')->nullable();
+            $table->enum('transaction_status', ['pending', 'success', 'failed'])->default('pending');
+            $table->json('payload')->nullable();
             $table->timestamps();
         });
     }

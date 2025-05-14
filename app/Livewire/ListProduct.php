@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\On;
 use Livewire\Component;
 use Illuminate\Support\Str;
+use Midtrans\Snap;
+use Midtrans\Config;
 
 class ListProduct extends Component
 {
@@ -43,7 +45,79 @@ class ListProduct extends Component
 
     public function checkout()
     {
-        dd($this->totalPrice);
+        // Konfigurasi Midtrans
+        Config::$serverKey = config('midtrans.server_key');
+        Config::$isProduction = config('midtrans.is_production');
+        Config::$isSanitized = config('midtrans.sanitized');
+        Config::$is3ds = config('midtrans.3ds');
+
+        $midtransOrderId = 'ORDER-' . uniqid();
+
+        // Data transaksi
+        $params = [
+            'transaction_details' => [
+                'order_id' => $midtransOrderId,
+                'gross_amount' => $this->totalPrice,
+            ],
+            'customer_details' => [
+                'first_name' => $this->user->name,
+                'email' => $this->user->email,
+            ],
+            'callbacks' => [
+                'finish' => route('my_orders'),
+            ],
+        ];
+
+        // Dapatkan Snap URL
+        $snapUrl = Snap::createTransaction($params)->redirect_url;
+
+        // Buat Transaksi di Database
+        $this->createOrderTransaction($midtransOrderId);
+
+        // Dispatch ke frontend untuk redirect
+        $this->dispatch('redirect-to-midtrans', $snapUrl);
+    }
+
+    public function createOrderTransaction($midtransOrderId)
+    {
+        DB::beginTransaction();
+
+        try {
+            // Buat order
+            $order = new Order();
+            $order->user_id = $this->user->id;
+            $order->total_price = $this->totalPrice;
+            $order->status = 'pending';
+            $order->save();
+
+            // Salin semua cart item ke order_items
+            foreach ($this->cartItems as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->product->price,
+                ]);
+            }
+
+            // Buat payment
+            Payment::create([
+                'user_id' => $this->user->id,
+                'order_id' => $order->id,
+                'midtrans_order_id' => $midtransOrderId,
+                'bill' => $this->totalPrice,
+                'transaction_status' => 'pending',
+            ]);
+
+            DB::commit();
+
+            // (Opsional) Kosongkan cart
+            CartItem::where('cart_id', $this->cart->id)->delete();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     public function render()

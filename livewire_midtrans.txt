@@ -44,5 +44,24 @@ Livewire Midtrans
 - 
 
 # Midtrans
-- Install Midtrans, ""
-- 
+- Install Midtrans, "composer require midtrans/midtrans-php"
+- Buat file konfigurasi, config/midtrans.php
+- Tambahkan ke file .env variabel yang akan dipakai di config/midtrans.php
+- Inisialisasi Midtrans di komponen, misalnya pada fungsi checkout
+- Pada fungsi checkout terdapat 
+    - variabel konfigurasi midtrans, 
+    - data transaksi untuk dikirim ke midtrans, 
+    - membuat snap url untuk membuka halaman pembayaran midtrans,
+    - dan kelola database, seperti memindah data dari keranjang ke pesanan 
+
+# Buat Callback Midtrans
+- Buat Controller baru, "php artisan make:controller MidtransCallbackController"
+- Buat route baru routes/api.php
+- Daftarkan api di bootstrap/app.php --> wajib
+- Tambahkan route MidtransCallbackController ke routes/api.php
+- Pada controller MidtransCallbackController terdapat
+    - variabel konfigurasi midtrans
+    - validasi-validasi
+    - ubah status pembayaran dan pesanan
+    - kurangi stok produk
+- Setelah selesai, bisa dites dengan Postman
